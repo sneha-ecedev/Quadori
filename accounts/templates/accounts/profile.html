@@ -1,0 +1,38 @@
+{% extends 'accounts/base.html' %}
+
+{% block title %}My profile | Quadori{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-12 col-lg-8 col-xl-7">
+        <div class="card auth-card">
+            <div class="card-body p-4 p-md-5">
+                <div class="d-flex flex-column flex-sm-row align-items-center align-items-sm-start gap-4">
+                    {% if profile.profile_photo %}
+                        <img class="profile-photo rounded-circle border" src="{{ profile.profile_photo.url }}" alt="Profile photo for {{ profile.user.get_full_name|default:profile.user.username }}">
+                    {% else %}
+                        <div class="profile-photo rounded-circle bg-primary-subtle text-primary d-flex align-items-center justify-content-center fs-1 fw-semibold" aria-label="No profile photo">
+                            {{ profile.user.username|first|upper }}
+                        </div>
+                    {% endif %}
+                    <div class="text-center text-sm-start flex-grow-1">
+                        <p class="text-primary text-uppercase small fw-semibold mb-2">Account profile</p>
+                        <h1 class="h3 mb-1">{{ profile.user.get_full_name|default:profile.user.username }}</h1>
+                        <p class="text-secondary mb-0">{{ profile.user.email|default:'No email added' }}</p>
+                        <a class="btn btn-primary mt-3" href="/accounts/profile/edit/">Edit profile</a>
+                    </div>
+                </div>
+
+                <hr class="my-4">
+                <h2 class="h5 mb-3">Profile details</h2>
+                <dl class="row mb-0">
+                    <dt class="col-sm-4 text-secondary fw-normal">Username</dt>
+                    <dd class="col-sm-8">{{ profile.user.username }}</dd>
+                    <dt class="col-sm-4 text-secondary fw-normal">Phone number</dt>
+                    <dd class="col-sm-8">{{ profile.phone_number|default:'Not provided' }}</dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

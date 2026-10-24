@@ -1,0 +1,113 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Hotel Booking | Quadori</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<style>
+        body { min-height: 100vh; background: #f4f7fb; color: #17243a; }
+        .navbar-brand { font-weight: 750; }
+        .hero { color: #fff; background: linear-gradient(120deg, #59378f, #9369ce); border-radius: 1.2rem; }
+        .surface-card { border: 0; border-radius: 1rem; box-shadow: 0 .75rem 2rem rgba(25, 45, 75, .07); }
+        .hotel-card { height: 100%; border: 1px solid #e8edf4; border-radius: 1rem; overflow: hidden; }
+        .hotel-image { height: 225px; width: 100%; object-fit: cover; }
+        .room-option { border: 1px solid #e7eaf0; border-radius: .75rem; padding: .85rem; }
+    </style>
+    <link href="{% static 'css/quadori.css' %}" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+{% include 'home/includes/site_navbar.html' %}
+
+<main class="container py-4 py-lg-5">
+    <section class="hero p-4 p-md-5 mb-4">
+        <p class="text-white-50 text-uppercase small fw-semibold mb-2">India hotel booking</p>
+        <h1 class="display-6 fw-bold mb-2">Find a place to stay</h1>
+        <p class="mb-0 text-white-50">Explore sample stays across India and book the room that fits your trip.</p>
+    </section>
+
+    <section class="card surface-card mb-5" aria-labelledby="searchHeading">
+        <div class="card-body p-4 p-lg-5">
+            <h2 class="h4 mb-4" id="searchHeading">Search Hotels</h2>
+            <form method="get" action="{% url 'hotel:search' %}" novalidate>
+                <div class="row g-3 align-items-end">
+                    {% for field in form %}
+                        <div class="col-12 col-md-6 col-xl">
+                            <label class="form-label fw-medium" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                            {{ field }}
+                            {% for error in field.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                        </div>
+                    {% endfor %}
+                    <div class="col-12 col-xl-2">
+                        <button class="btn btn-primary w-100" type="submit"><i class="fa-solid fa-magnifying-glass me-2"></i>Search</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </section>
+
+    <section aria-labelledby="resultsHeading">
+        <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-end gap-2 mb-3">
+            <div>
+                <p class="text-primary text-uppercase small fw-semibold mb-1">Handpicked stays</p>
+                <h2 class="h3 mb-0" id="resultsHeading">Hotels in India</h2>
+            </div>
+            {% if check_in and check_out %}
+                <span class="text-secondary">{{ check_in|date:'M j' }} – {{ check_out|date:'M j, Y' }} · {{ nights }} night{{ nights|pluralize }} · {{ adults }} adult{{ adults|pluralize }} · {{ children }} children · {{ rooms }} room{{ rooms|pluralize }}</span>
+            {% endif %}
+        </div>
+
+        <div class="row g-4">
+            {% for hotel in hotels %}
+                <div class="col-12 col-lg-6">
+                    <article class="card hotel-card shadow-sm">
+                        <img class="hotel-image" src="{{ hotel.image_url }}" alt="{{ hotel.name }}" loading="lazy">
+                        <div class="card-body p-4">
+                            <div class="d-flex justify-content-between gap-3 align-items-start">
+                                <div>
+                                    <h3 class="h4 mb-1">{{ hotel.name }}</h3>
+                                    <div class="text-warning" aria-label="{{ hotel.rating }} out of 5 stars">
+                                        {% for star in '12345' %}{% if forloop.counter <= hotel.rating %}<i class="fa-solid fa-star"></i>{% else %}<i class="fa-solid fa-star"></i>{% endif %}{% endfor %}
+                                        <span class="text-secondary small ms-1">{{ hotel.rating }} star{{ hotel.rating|pluralize }}</span>
+                                    </div>
+                                </div>
+                                <span class="badge text-bg-light">{{ hotel.city }}, India</span>
+                            </div>
+                            <p class="text-secondary mt-3 mb-3"><i class="fa-solid fa-location-dot me-1"></i>{{ hotel.address }}</p>
+                            <div class="small text-secondary mb-3">{{ nights|default:'—' }} night{{ nights|pluralize }} · {{ adults }} adult{{ adults|pluralize }} · {{ children }} children · {{ rooms }} room{{ rooms|pluralize }}</div>
+                            <h4 class="h6 mb-3">Choose a room</h4>
+                            <div class="d-grid gap-2">
+                                {% for room_type, price in hotel.room_prices.items %}
+                                    <div class="room-option d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-2">
+                                        <div><strong>{{ room_type }}</strong><div class="small text-secondary">₹{{ price|floatformat:2 }} per room / night</div></div>
+                                        {% if check_in and check_out %}
+                                            <a class="btn btn-primary btn-sm" href="{% url 'hotel:book' %}?hotel_id={{ hotel.id }}&check_in={{ check_in|date:'Y-m-d' }}&check_out={{ check_out|date:'Y-m-d' }}&adults={{ adults }}&children={{ children }}&rooms={{ rooms }}&room_type={{ room_type }}">Book Now</a>
+                                        {% else %}
+                                            <button class="btn btn-primary btn-sm" type="button" disabled>Book Now</button>
+                                        {% endif %}
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </article>
+                </div>
+            {% empty %}
+                <div class="col-12">
+                    <div class="card surface-card"><div class="card-body p-5 text-center">
+                        <i class="fa-solid fa-building display-5 text-secondary"></i>
+                        <h3 class="h5 mt-3">No hotels found</h3>
+                        <p class="text-secondary mb-0">Try searching another Indian city.</p>
+                    </div></div>
+                </div>
+            {% endfor %}
+        </div>
+    </section>
+</main>
+<div class="q-loader" aria-live="polite" aria-label="Loading"><div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div></div>
+{% include 'home/includes/site_footer.html' %}
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="{% static 'js/quadori-ui.js' %}"></script>
+</body>
+</html>

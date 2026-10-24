@@ -1,0 +1,113 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>My Bookings | Quadori</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<style>
+        body { min-height: 100vh; background: #f4f7fb; color: #17243a; }
+        .navbar-brand { font-weight: 750; }
+        .surface-card { border: 0; border-radius: 1rem; box-shadow: 0 .75rem 2rem rgba(25, 45, 75, .07); }
+        .booking-id { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; overflow-wrap: anywhere; }
+        .table > :not(caption) > * > * { padding: 1rem .9rem; vertical-align: middle; }
+    </style>
+    <link href="{% static 'css/quadori.css' %}" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+{% include 'home/includes/site_navbar.html' %}
+
+<main class="container py-4 py-lg-5">
+    {% if messages %}<div class="mb-3">{% for message in messages %}<div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">{{ message }}<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>{% endfor %}</div>{% endif %}
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-end gap-3 mb-4">
+        <div>
+            <p class="text-primary text-uppercase small fw-semibold mb-1">Your account</p>
+            <h1 class="display-6 fw-bold mb-1">My Bookings</h1>
+            <p class="text-secondary mb-0">View and find your reservations across Quadori.</p>
+        </div>
+        <a class="btn btn-primary" href="/dashboard/"><i class="fa-solid fa-arrow-left me-1"></i>Dashboard</a>
+    </div>
+
+    <section class="card surface-card mb-4" aria-label="Filter bookings">
+        <div class="card-body p-3 p-md-4">
+            <form method="get" class="row g-3 align-items-end">
+                <div class="col-12 col-md-6 col-lg-5">
+                    <label class="form-label" for="{{ form.booking_id.id_for_label }}">{{ form.booking_id.label }}</label>
+                    {{ form.booking_id }}
+                </div>
+                <div class="col-12 col-md-4 col-lg-4">
+                    <label class="form-label" for="{{ form.service_type.id_for_label }}">{{ form.service_type.label }}</label>
+                    {{ form.service_type }}
+                </div>
+                <div class="col-12 col-md-2 col-lg-3 d-flex gap-2">
+                    <button class="btn btn-primary flex-grow-1" type="submit"><i class="fa-solid fa-filter me-1"></i>Apply</button>
+                    <a class="btn btn-outline-secondary" href="{% url 'mybookings:list' %}">Reset</a>
+                </div>
+            </form>
+        </div>
+    </section>
+
+    {% if bookings %}
+        <section class="card surface-card overflow-hidden" aria-label="Your bookings">
+            <div class="table-responsive d-none d-lg-block">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light"><tr><th scope="col">Booking ID</th><th scope="col">Booking Date</th><th scope="col">Service Type</th><th scope="col">Passengers, Names / Seats / Rooms</th><th scope="col">Status</th><th scope="col" class="text-end">Details</th></tr></thead>
+                    <tbody>
+                        {% for booking in bookings %}
+                            <tr>
+                                <td class="booking-id">{{ booking.booking_id }}</td>
+                                <td>{{ booking.booking_date|date:'M j, Y' }}</td>
+                                <td><span class="badge text-bg-light">{{ booking.service_type }}</span></td>
+                                <td>{{ booking.party_summary }}</td>
+                                <td><span class="badge {% if booking.is_confirmed %}text-bg-success{% else %}text-bg-danger{% endif %}">{{ booking.status }}</span></td>
+                                <td class="text-end"><div class="d-inline-flex gap-2"><a class="btn btn-outline-primary btn-sm" href="{{ booking.detail_url }}">View Details</a><a class="btn btn-outline-dark btn-sm" href="{{ booking.ticket_url }}"><i class="fa-solid fa-file-pdf me-1"></i>Download Ticket</a>{% if booking.is_confirmed %}<form method="post" action="{{ booking.cancel_url }}" onsubmit="return confirm('Cancel this booking? This action cannot be undone.');">{% csrf_token %}<button class="btn btn-outline-danger btn-sm" type="submit">Cancel Booking</button></form>{% endif %}</div></td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="d-lg-none p-3">
+                <div class="row g-3">
+                    {% for booking in bookings %}
+                        <div class="col-12 col-md-6">
+                            <article class="card h-100">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start gap-2 mb-3">
+                                        <span class="badge text-bg-light">{{ booking.service_type }}</span>
+                                        <span class="badge {% if booking.is_confirmed %}text-bg-success{% else %}text-bg-danger{% endif %}">{{ booking.status }}</span>
+                                    </div>
+                                    <div class="small text-secondary">Booking ID</div>
+                                    <div class="booking-id small mb-3">{{ booking.booking_id }}</div>
+                                    <div class="small text-secondary">Booking Date</div>
+                                    <div class="mb-3">{{ booking.booking_date|date:'M j, Y' }}</div>
+                                    <div class="small text-secondary">Passengers, Names / Seats / Rooms</div>
+                                    <div class="mb-3">{{ booking.party_summary }}</div>
+                                    <a class="btn btn-outline-primary w-100 mb-2" href="{{ booking.detail_url }}">View Details</a>
+                                    <a class="btn btn-outline-dark w-100 mb-2" href="{{ booking.ticket_url }}"><i class="fa-solid fa-file-pdf me-1"></i>Download Ticket</a>
+                                    {% if booking.is_confirmed %}<form method="post" action="{{ booking.cancel_url }}" onsubmit="return confirm('Cancel this booking? This action cannot be undone.');">{% csrf_token %}<button class="btn btn-outline-danger w-100" type="submit">Cancel Booking</button></form>{% endif %}
+                                </div>
+                            </article>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </section>
+    {% else %}
+        <section class="card surface-card">
+            <div class="card-body p-5 text-center">
+                <i class="fa-solid fa-book-open display-5 text-secondary"></i>
+                <h2 class="h4 mt-3">No bookings found</h2>
+                <p class="text-secondary mb-0">Your bookings will appear here, or adjust your search filters.</p>
+            </div>
+        </section>
+    {% endif %}
+</main>
+<div class="q-loader" aria-live="polite" aria-label="Loading"><div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div></div>
+{% include 'home/includes/site_footer.html' %}
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="{% static 'js/quadori-ui.js' %}"></script>
+</body>
+</html>

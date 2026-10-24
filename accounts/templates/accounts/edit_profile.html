@@ -1,0 +1,37 @@
+{% extends 'accounts/base.html' %}
+
+{% block title %}Edit profile | Quadori{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-12 col-md-9 col-lg-7 col-xl-6">
+        <div class="card auth-card">
+            <div class="card-body p-4 p-md-5">
+                <div class="mb-4">
+                    <p class="text-primary text-uppercase small fw-semibold mb-2">Account settings</p>
+                    <h1 class="h3 mb-2">Edit your profile</h1>
+                    <p class="text-secondary mb-0">Update the personal details on your account.</p>
+                </div>
+
+                <form method="post" enctype="multipart/form-data" novalidate>
+                    {% csrf_token %}
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger" role="alert">{{ form.non_field_errors }}</div>
+                    {% endif %}
+                    {% for field in form %}
+                        <div class="mb-3">
+                            <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                            {{ field }}
+                            {% for error in field.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+                        </div>
+                    {% endfor %}
+                    <div class="d-flex flex-column flex-sm-row gap-2 mt-4">
+                        <button class="btn btn-primary flex-grow-1" type="submit">Save changes</button>
+                        <a class="btn btn-outline-secondary" href="/accounts/profile/">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

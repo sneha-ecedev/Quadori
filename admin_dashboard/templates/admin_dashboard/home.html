@@ -1,0 +1,106 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Admin Analytics | Quadori</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" rel="stylesheet">
+  <link href="{% static 'css/quadori.css' %}" rel="stylesheet">
+  <style>
+    :root{--admin-ink:#18263d;--admin-muted:#748198;--admin-bg:#f4f7fb;--admin-navy:#14233d}
+    body{background:var(--admin-bg);color:var(--admin-ink);font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
+    .admin-sidebar{width:252px;background:var(--admin-navy);color:#fff}.brand{color:#fff;text-decoration:none;font-size:1.35rem;font-weight:750}.brand i{color:#78a2ff}
+    .side-link{color:#c2cce0;text-decoration:none;display:flex;gap:.8rem;align-items:center;padding:.75rem .9rem;border-radius:.7rem;font-weight:500}.side-link:hover,.side-link.active{background:#ffffff18;color:#fff}.side-label{color:#8593ac;font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;margin:1.8rem .9rem .65rem}
+    .admin-main{min-width:0}.topbar{height:76px;background:#fff;border-bottom:1px solid #e9edf4}.metric-card,.panel{border:0;border-radius:1rem;box-shadow:0 5px 22px #14233d0a}.metric-icon{width:46px;height:46px;border-radius:14px;display:grid;place-items:center;font-size:1.1rem}.metric-number{font-size:1.8rem;font-weight:750;letter-spacing:-.04em}.muted{color:var(--admin-muted)}.chart-wrap{position:relative;height:300px}.table thead th{font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:#8792a5;border-bottom-width:1px;white-space:nowrap}
+    @media(min-width:992px){.admin-sidebar{position:fixed;inset:0 auto 0 0;min-height:100vh;z-index:1030}.admin-main{margin-left:252px}}
+  </style>
+</head>
+<body>
+<aside class="admin-sidebar d-none d-lg-flex flex-column p-3">
+  <a class="brand d-flex align-items-center gap-2 px-2 py-3" href="{% url 'admin_dashboard:home' %}"><i class="fa-solid fa-compass"></i>Quadori</a>
+  <div class="side-label">Workspace</div>
+  <nav class="d-grid gap-1">
+    <a class="side-link active" href="{% url 'admin_dashboard:home' %}"><i class="fa-solid fa-chart-line"></i><span>Dashboard</span></a>
+    <a class="side-link" href="/admin/auth/user/"><i class="fa-solid fa-users"></i><span>Users</span></a>
+    <a class="side-link" href="#recent-bookings"><i class="fa-solid fa-ticket"></i><span>Bookings</span></a>
+    <a class="side-link" href="#reports"><i class="fa-solid fa-chart-pie"></i><span>Reports</span></a>
+  </nav>
+  <div class="mt-auto pt-4"><form method="post" action="/accounts/logout/">{% csrf_token %}<button class="side-link border-0 bg-transparent w-100 text-start"><i class="fa-solid fa-right-from-bracket"></i><span>Log out</span></button></form></div>
+</aside>
+
+<div class="admin-main min-vh-100">
+  <nav class="topbar navbar px-3 px-lg-4">
+    <div class="container-fluid p-0">
+      <div class="d-flex align-items-center gap-2">
+        <button class="btn btn-outline-secondary d-lg-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileAdminNav" aria-label="Open admin navigation"><i class="fa-solid fa-bars"></i></button>
+        <div><span class="small muted">QUADORI / ADMIN</span><h1 class="h5 fw-bold mb-0">Analytics dashboard</h1></div>
+      </div>
+      <div class="d-flex align-items-center gap-2"><span class="text-end d-none d-sm-block"><span class="d-block fw-semibold small">{{ request.user.get_full_name|default:request.user.username }}</span><span class="d-block muted" style="font-size:.72rem">Administrator</span></span><span class="rounded-circle bg-primary-subtle text-primary d-grid fw-bold" style="width:40px;height:40px;place-items:center">{{ request.user.username|first|upper }}</span></div>
+    </div>
+  </nav>
+
+  <div class="offcanvas offcanvas-start text-bg-dark" tabindex="-1" id="mobileAdminNav" aria-labelledby="mobileAdminNavLabel">
+    <div class="offcanvas-header"><h2 class="offcanvas-title fs-5 fw-bold" id="mobileAdminNavLabel">Quadori Admin</h2><button class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button></div>
+    <div class="offcanvas-body"><nav class="d-grid gap-1"><a class="side-link active" href="{% url 'admin_dashboard:home' %}"><i class="fa-solid fa-chart-line"></i>Dashboard</a><a class="side-link" href="/admin/auth/user/"><i class="fa-solid fa-users"></i>Users</a><a class="side-link" href="#recent-bookings" data-bs-dismiss="offcanvas"><i class="fa-solid fa-ticket"></i>Bookings</a><a class="side-link" href="#reports" data-bs-dismiss="offcanvas"><i class="fa-solid fa-chart-pie"></i>Reports</a></nav></div>
+  </div>
+
+  <main class="container-fluid p-3 p-lg-4 p-xl-5">
+    <div class="d-flex flex-wrap justify-content-between align-items-end gap-2 mb-4"><div><p class="text-primary text-uppercase small fw-bold mb-1">Overview</p><h2 class="h3 fw-bold mb-1">Booking activity</h2><p class="muted mb-0">Monitor users, reservations, and revenue across Quadori.</p></div><span class="small muted"><i class="fa-regular fa-calendar me-1"></i>{% now "j F Y" %}</span></div>
+
+    <form method="get" class="card panel p-3 p-lg-4 mb-4" role="search">
+      <div class="row g-3 align-items-end"><div class="col-12 col-md-6 col-lg-5"><label class="form-label fw-semibold" for="searchInput">Search bookings</label><div class="input-group"><span class="input-group-text bg-white"><i class="fa-solid fa-magnifying-glass text-secondary"></i></span><input class="form-control" id="searchInput" type="search" name="q" value="{{ search }}" placeholder="Booking ID or username" maxlength="100"></div></div>
+      <div class="col-8 col-md-4 col-lg-3"><label class="form-label fw-semibold" for="periodSelect">Time period</label><select class="form-select" name="period" id="periodSelect"><option value="" {% if not period %}selected{% endif %}>All time</option><option value="today" {% if period == 'today' %}selected{% endif %}>Today</option><option value="week" {% if period == 'week' %}selected{% endif %}>This week</option><option value="month" {% if period == 'month' %}selected{% endif %}>This month</option></select></div>
+      <div class="col-4 col-md-2"><button class="btn btn-primary w-100" type="submit">Apply</button></div></div>
+      {% if period_start %}<p class="small muted mb-0 mt-2">Showing data from {{ period_start|date:'d M Y' }}{% if period_end != period_start %} through {{ period_end|date:'d M Y' }}{% endif %}.</p>{% endif %}
+    </form>
+
+    <section aria-label="Dashboard statistics" class="row g-3 mb-4">
+      <div class="col-6 col-xl-3"><article class="card metric-card p-3 p-xl-4 h-100"><div class="d-flex justify-content-between"><div><div class="small muted mb-2">Total Users</div><div class="metric-number">{{ total_users }}</div></div><span class="metric-icon bg-primary-subtle text-primary"><i class="fa-solid fa-users"></i></span></div></article></div>
+      <div class="col-6 col-xl-3"><article class="card metric-card p-3 p-xl-4 h-100"><div class="d-flex justify-content-between"><div><div class="small muted mb-2">Flight Bookings</div><div class="metric-number">{{ counts.Flights }}</div><div class="small text-danger">{{ cancelled_counts.Flights }} cancelled</div></div><span class="metric-icon bg-primary-subtle text-primary"><i class="fa-solid fa-plane"></i></span></div></article></div>
+      <div class="col-6 col-xl-3"><article class="card metric-card p-3 p-xl-4 h-100"><div class="d-flex justify-content-between"><div><div class="small muted mb-2">Bus Bookings</div><div class="metric-number">{{ counts.Buses }}</div><div class="small text-danger">{{ cancelled_counts.Buses }} cancelled</div></div><span class="metric-icon bg-success-subtle text-success"><i class="fa-solid fa-bus"></i></span></div></article></div>
+      <div class="col-6 col-xl-3"><article class="card metric-card p-3 p-xl-4 h-100"><div class="d-flex justify-content-between"><div><div class="small muted mb-2">Train Bookings</div><div class="metric-number">{{ counts.Trains }}</div><div class="small text-danger">{{ cancelled_counts.Trains }} cancelled</div></div><span class="metric-icon bg-warning-subtle text-warning-emphasis"><i class="fa-solid fa-train"></i></span></div></article></div>
+      <div class="col-6 col-xl-3"><article class="card metric-card p-3 p-xl-4 h-100"><div class="d-flex justify-content-between"><div><div class="small muted mb-2">Hotel Bookings</div><div class="metric-number">{{ counts.Hotels }}</div><div class="small text-danger">{{ cancelled_counts.Hotels }} cancelled</div></div><span class="metric-icon bg-info-subtle text-info"><i class="fa-solid fa-hotel"></i></span></div></article></div>
+      <div class="col-6 col-xl-3"><article class="card metric-card p-3 p-xl-4 h-100"><div class="d-flex justify-content-between"><div><div class="small muted mb-2">Restaurant Bookings</div><div class="metric-number">{{ counts.Restaurants }}</div><div class="small text-danger">{{ cancelled_counts.Restaurants }} cancelled</div></div><span class="metric-icon bg-danger-subtle text-danger"><i class="fa-solid fa-utensils"></i></span></div></article></div>
+      <div class="col-6 col-xl-3"><article class="card metric-card p-3 p-xl-4 h-100"><div class="d-flex justify-content-between"><div><div class="small muted mb-2">Movie Bookings</div><div class="metric-number">{{ counts.Movies }}</div><div class="small text-danger">{{ cancelled_counts.Movies }} cancelled</div></div><span class="metric-icon bg-dark-subtle text-dark"><i class="fa-solid fa-film"></i></span></div></article></div>
+      <div class="col-6 col-xl-3"><article class="card metric-card p-3 p-xl-4 h-100"><div class="d-flex justify-content-between"><div><div class="small muted mb-2">Cancelled Bookings</div><div class="metric-number">{{ cancelled_total }}</div></div><span class="metric-icon bg-danger-subtle text-danger"><i class="fa-solid fa-ban"></i></span></div></article></div>
+      <div class="col-6 col-xl-3"><article class="card metric-card p-3 p-xl-4 h-100"><div class="d-flex justify-content-between"><div><div class="small muted mb-2">Total Revenue</div><div class="metric-number fs-4">₹{{ total_revenue|floatformat:2 }}</div></div><span class="metric-icon bg-success-subtle text-success"><i class="fa-solid fa-indian-rupee-sign"></i></span></div></article></div>
+    </section>
+
+    <section id="reports" class="mb-4" aria-label="Booking charts"><div class="d-flex align-items-end justify-content-between mb-3"><div><p class="text-primary text-uppercase small fw-bold mb-1">Reports</p><h2 class="h4 fw-bold mb-0">Booking charts</h2></div></div>
+      <div class="row g-3"><div class="col-12 col-xl-6"><article class="card panel p-3 p-lg-4 h-100"><h3 class="h6 fw-bold mb-3">Booking count by service</h3><div class="chart-wrap"><canvas id="serviceChart" aria-label="Booking count by service chart" role="img"></canvas></div></article></div>
+      <div class="col-12 col-xl-6"><article class="card panel p-3 p-lg-4 h-100"><h3 class="h6 fw-bold mb-3">Monthly revenue · last 12 months</h3><div class="chart-wrap"><canvas id="revenueChart" aria-label="Monthly revenue chart" role="img"></canvas></div></article></div>
+      <div class="col-12"><article class="card panel p-3 p-lg-4"><h3 class="h6 fw-bold mb-3">Daily bookings · last 14 days</h3><div class="chart-wrap"><canvas id="dailyChart" aria-label="Daily bookings chart" role="img"></canvas></div></article></div></div>
+    </section>
+
+    <section id="recent-bookings" class="card panel p-3 p-lg-4"><div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3"><div><p class="text-primary text-uppercase small fw-bold mb-1">Latest activity</p><h2 class="h5 fw-bold mb-0">Recent bookings</h2></div><span class="badge rounded-pill text-bg-light">Latest 10</span></div>
+      <div class="table-responsive"><table class="table table-hover align-middle mb-0"><thead><tr><th>Booking ID</th><th>User</th><th>Service</th><th>Date</th><th class="text-end">Amount</th><th>Status</th></tr></thead><tbody>
+      {% for booking in latest_bookings %}<tr><td><code class="small">{{ booking.booking_id }}</code></td><td><span class="fw-semibold">{{ booking.user_label }}</span><small class="d-block text-secondary">@{{ booking.username }}</small></td><td>{{ booking.service }}</td><td class="text-nowrap">{{ booking.created_at|date:'d M Y, H:i' }}</td><td class="text-end text-nowrap">₹{{ booking.amount|floatformat:2 }}</td><td><span class="badge rounded-pill {% if booking.status == 'Confirmed' %}text-bg-success-subtle text-success-emphasis{% else %}text-bg-danger-subtle text-danger-emphasis{% endif %}">{{ booking.status }}</span></td></tr>
+      {% empty %}<tr><td colspan="6" class="text-center muted py-5"><i class="fa-solid fa-inbox fs-3 d-block mb-2"></i>No bookings match this search or time period.</td></tr>{% endfor %}
+      </tbody></table></div>
+    </section>
+    <footer class="text-center small muted py-4">Quadori Administration</footer>
+  </main>
+</div>
+
+{{ chart_service_labels|json_script:'chart-service-labels' }}
+{{ chart_booking_counts|json_script:'chart-booking-counts' }}
+{{ chart_service_revenue|json_script:'chart-service-revenue' }}
+{{ chart_month_labels|json_script:'chart-month-labels' }}
+{{ chart_month_revenue|json_script:'chart-month-revenue' }}
+{{ chart_day_labels|json_script:'chart-day-labels' }}
+{{ chart_daily_bookings|json_script:'chart-daily-bookings' }}
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+<script src="{% static 'js/quadori-ui.js' %}"></script>
+<script>
+  const readJson = (id) => JSON.parse(document.getElementById(id).textContent);
+  const serviceLabels = readJson('chart-service-labels');
+  const palette = ['#3975ed','#17a47b','#f4ad38','#7b61d1','#ed6b78','#26364f'];
+  const commonOptions = {responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}};
+  new Chart(document.getElementById('serviceChart'), {type:'bar',data:{labels:serviceLabels,datasets:[{data:readJson('chart-booking-counts'),backgroundColor:palette,borderRadius:7,maxBarThickness:48}]},options:{...commonOptions,indexAxis:'y',scales:{x:{beginAtZero:true,ticks:{precision:0},grid:{color:'#edf0f5'}},y:{grid:{display:false}}}}});
+  new Chart(document.getElementById('revenueChart'), {type:'line',data:{labels:readJson('chart-month-labels'),datasets:[{data:readJson('chart-month-revenue'),borderColor:'#17a47b',backgroundColor:'rgba(23,164,123,.12)',fill:true,tension:.35,pointRadius:3}]},options:{...commonOptions,scales:{y:{beginAtZero:true,grid:{color:'#edf0f5'}},x:{grid:{display:false}}}}});
+  new Chart(document.getElementById('dailyChart'), {type:'bar',data:{labels:readJson('chart-day-labels'),datasets:[{data:readJson('chart-daily-bookings'),backgroundColor:'rgba(57,117,237,.78)',borderRadius:6,maxBarThickness:36}]},options:{...commonOptions,scales:{y:{beginAtZero:true,ticks:{precision:0},grid:{color:'#edf0f5'}},x:{grid:{display:false}}}}});
+</script>
+</body>
+</html>

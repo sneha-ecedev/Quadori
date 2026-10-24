@@ -1,0 +1,21 @@
+<nav class="navbar navbar-expand-xl bg-white sticky-top py-2" aria-label="Main navigation">
+  <div class="container">
+    <a class="navbar-brand fs-4" href="/"><i class="fa-solid fa-compass me-2"></i>Quadori</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#qMainNav" aria-controls="qMainNav" aria-expanded="false" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button>
+    <div class="collapse navbar-collapse" id="qMainNav">
+      <ul class="navbar-nav ms-auto align-items-xl-center gap-xl-1">
+        <li class="nav-item"><a class="nav-link" href="/">Home</a></li><li class="nav-item"><a class="nav-link" href="/flights/">Flights</a></li>
+        <li class="nav-item"><a class="nav-link" href="/buses/">Buses</a></li><li class="nav-item"><a class="nav-link" href="/trains/">Trains</a></li>
+        <li class="nav-item"><a class="nav-link" href="/hotels/">Hotels</a></li><li class="nav-item"><a class="nav-link" href="/restaurants/">Restaurants</a></li>
+        <li class="nav-item"><a class="nav-link" href="/movies/">Movies</a></li>
+        {% if user.is_authenticated %}
+          <li class="nav-item"><a class="nav-link" href="/my-bookings/">My Bookings</a></li>
+          <li class="nav-item ms-xl-2"><form method="post" action="/accounts/logout/">{% csrf_token %}<button class="btn btn-outline-secondary btn-sm px-3" type="submit">Logout</button></form></li>
+        {% else %}
+          <li class="nav-item ms-xl-2"><a class="nav-link" href="/accounts/login/">Login</a></li>
+          <li class="nav-item"><a class="btn btn-primary btn-sm px-3" href="/accounts/register/">Register</a></li>
+        {% endif %}
+      </ul>
+    </div>
+  </div>
+</nav>
